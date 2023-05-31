@@ -4,7 +4,7 @@ import math, random
 # Константы
 WIDTH = 1920
 HEIGHT = 1080
-SUN_RADIUS = 28
+SUN_RADIUS = 30
 PLANET_RADIUS = {
     'Mercury': 8,
     'Venus': 18,
@@ -86,6 +86,7 @@ PLANET_INFO = {
     }
 }
 
+
 class Planet:
     def __init__(self, canvas, name, radius, color, speed, orbit_radius):
         self.canvas = canvas
@@ -104,6 +105,7 @@ class Planet:
         self.canvas.coords(self.planet_id, x - self.radius, y - self.radius,
                            x + self.radius, y + self.radius)
 
+
 class SolarSystemApp:
     def __init__(self, root):
         self.root = root
@@ -112,22 +114,32 @@ class SolarSystemApp:
         self.canvas.pack()
         self.stars = []
         for i in range(190):
-            x=random.randint(0, WIDTH)
-            y=random.randint(0, HEIGHT)
-            self.stars.append(self.canvas.create_oval(x, y, x+5, y+5, fill='white'))
-            
-        
-        self.sun = self.canvas.create_oval(WIDTH/2 - SUN_RADIUS, HEIGHT/2 - SUN_RADIUS,
-                                           WIDTH/2 + SUN_RADIUS, HEIGHT/2 + SUN_RADIUS, fill='yellow')
+            x = random.randint(0, WIDTH)
+            y = random.randint(0, HEIGHT)
+            self.stars.append(self.canvas.create_oval(x, y, x + 5, y + 5, fill='white'))
+
+        self.sun = self.canvas.create_oval(WIDTH / 2 - SUN_RADIUS, HEIGHT / 2 - SUN_RADIUS,
+                                           WIDTH / 2 + SUN_RADIUS, HEIGHT / 2 + SUN_RADIUS, fill='yellow')
 
         self.planets = []
+        self.speed_scales = []
         for name, color in PLANET_COLORS.items():
             speed = PLANET_SPEEDS[name]
             orbit_radius = (PLANET_RADIUS[name] + 35) * (list(PLANET_COLORS.keys()).index(name) + 1)
             planet = Planet(self.canvas, name, PLANET_RADIUS, color, speed, orbit_radius)
             self.planets.append(planet)
+            scale = tk.Scale(self.canvas, from_=0.01, to=2.0, resolution=0.01, length=200, orient='horizontal')
+            scale.set(speed)
+            scale.bind("<ButtonRelease-1>", self._update_speeds)
+            self.speed_scales.append(scale)
+            self.canvas.create_window(10, 10 + (30 * (len(self.planets) - 1)), anchor='nw', window=scale)
 
         self.canvas.bind('<Button-1>', self.on_click)
+
+    def _update_speeds(self, event):
+        for i, planet in enumerate(self.planets):
+            speed = self.speed_scales[i].get()
+            planet.speed = speed
 
     def on_click(self, event):
         for planet in self.planets:
@@ -148,6 +160,7 @@ class SolarSystemApp:
         for planet in self.planets:
             planet.move()
         self.root.after(10, self.animate)
+
 
 if __name__ == '__main__':
     root = tk.Tk()
